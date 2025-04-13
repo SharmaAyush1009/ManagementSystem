@@ -24,32 +24,21 @@ const AdminViewPlacements = () => {
     gender: ""
   });
 
-  // Fetch placements data
   const fetchPlacements = async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem("token");
-      
-      if (!token) {
-        setError("Authentication token not found. Please login again.");
-        setLoading(false);
-        return;
-      }
-      
       const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/placements`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
       setPlacements(response.data);
-      setLoading(false);
     } catch (error) {
-      console.error("Error fetching placement data:", error);
       setError("Failed to load placement data. Please try again.");
+    } finally {
       setLoading(false);
     }
   };
-  
-  // Initial data fetch
+
   useEffect(() => {
     fetchPlacements();
   }, []);
@@ -60,41 +49,23 @@ const AdminViewPlacements = () => {
   };
 
   const clearFilters = () => {
-    setFilters({
-      branch: "",
-      batch: "",
-      search: ""
-    });
+    setFilters({ branch: "", batch: "", search: "" });
   };
 
   const handleDelete = async (id) => {
     try {
-      setDeleteStatus({ success: "", error: "" });
       const token = localStorage.getItem("token");
-      
-      if (!token) {
-        setDeleteStatus({ success: "", error: "Authentication token not found. Please login again." });
-        return;
-      }
-      
       await axios.delete(`${process.env.REACT_APP_API_BASE_URL}/api/placements/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
-      // Update the placements list after successful deletion
-      setPlacements(placements.filter(placement => placement._id !== id));
-      setDeleteStatus({ success: "Placement record deleted successfully.", error: "" });
+      setPlacements(placements.filter(p => p._id !== id));
+      setDeleteStatus({ success: "Record deleted successfully", error: "" });
       setConfirmDelete(null);
-      
-      // Clear success message after 3 seconds
-      setTimeout(() => {
-        setDeleteStatus({ success: "", error: "" });
-      }, 3000);
+      setTimeout(() => setDeleteStatus({ success: "", error: "" }), 3000);
     } catch (error) {
-      console.error("Error deleting placement:", error);
       setDeleteStatus({ 
-        success: "", 
-        error: error.response?.data?.message || "Failed to delete placement record." 
+        error: error.response?.data?.message || "Failed to delete record",
+        success: "" 
       });
     }
   };
@@ -112,105 +83,60 @@ const AdminViewPlacements = () => {
     });
   };
 
-  const handleCancelEdit = () => {
-    setEditingPlacement(null);
-    setFormData({
-      name: "",
-      batch: "",
-      branch: "",
-      company: "",
-      package: "",
-      cpi: "",
-      gender: ""
-    });
-  };
-
-  const handleFormChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
   const handleSubmitEdit = async (id) => {
     try {
-      setDeleteStatus({ success: "", error: "" });
       const token = localStorage.getItem("token");
-      
-      if (!token) {
-        setDeleteStatus({ success: "", error: "Authentication token not found. Please login again." });
-        return;
-      }
-
-      // Add a new PUT route in your backend to handle updates
-      const response = await axios.put(`${process.env.REACT_APP_API_BASE_URL}/api/placements/${id}`, formData, {
+      await axios.put(`${process.env.REACT_APP_API_BASE_URL}/api/placements/${id}`, formData, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
-      // Update the placements list after successful edit
-      setPlacements(placements.map(placement => 
-        placement._id === id ? { ...placement, ...formData } : placement
-      ));
-      
-      setDeleteStatus({ success: "Placement record updated successfully.", error: "" });
+      setPlacements(placements.map(p => p._id === id ? { ...p, ...formData } : p));
+      setDeleteStatus({ success: "Record updated successfully", error: "" });
       setEditingPlacement(null);
-      
-      // Clear success message after 3 seconds
-      setTimeout(() => {
-        setDeleteStatus({ success: "", error: "" });
-      }, 3000);
+      setTimeout(() => setDeleteStatus({ success: "", error: "" }), 3000);
     } catch (error) {
-      console.error("Error updating placement:", error);
       setDeleteStatus({ 
-        success: "", 
-        error: error.response?.data?.message || "Failed to update placement record." 
+        error: error.response?.data?.message || "Failed to update record",
+        success: "" 
       });
     }
   };
 
-  // Get unique batches for filter
+  // Get unique values for filters
   const uniqueBatches = [...new Set(placements.map(p => p.batch))].sort((a, b) => b - a);
-
-  // Get unique branches for filter
   const uniqueBranches = [...new Set(placements.map(p => p.branch))].sort();
 
-  // Apply filters
+  // Apply filters and sort
   const filteredPlacements = placements.filter(p => {
-    const matchesBranch = filters.branch === "" || p.branch === filters.branch;
-    const matchesBatch = filters.batch === "" || p.batch.toString() === filters.batch;
-    const matchesSearch = filters.search === "" || 
-      p.name.toLowerCase().includes(filters.search.toLowerCase()) ||
-      p.company.toLowerCase().includes(filters.search.toLowerCase());
-    
-    return matchesBranch && matchesBatch && matchesSearch;
-  });
-
-  // Sort by newest first (based on _id which contains timestamp)
-  const sortedPlacements = [...filteredPlacements].sort((a, b) => {
-    return a._id > b._id ? -1 : 1;
-  });
-
-  if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
+      (filters.branch === "" || p.branch === filters.branch) &&
+      (filters.batch === "" || p.batch.toString() === filters.batch) &&
+      (filters.search === "" || 
+       p.name.toLowerCase().includes(filters.search.toLowerCase()) ||
+       p.company.toLowerCase().includes(filters.search.toLowerCase()))
     );
-  }
+  }).sort((a, b) => a._id > b._id ? -1 : 1);
+
+  if (loading) return (
+    <div className="flex justify-center items-center h-screen">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
+    <div className="min-h-screen bg-gray-50 p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
-        {/* Header Section */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
           <div>
             <h1 className="text-2xl font-bold text-gray-800">Placement Records</h1>
-            <p className="text-gray-500">Manage all student placement data</p>
+            <p className="text-gray-600">Manage student placement data</p>
           </div>
           <Link 
-            to="/admin/add-placement" 
-            className="flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white py-2 px-6 rounded-xl shadow-md hover:shadow-lg transition-all"
+            to="/admin/add-placement"
+            className="w-full md:w-auto flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded-lg transition shadow-sm"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
             </svg>
             Add New Placement
           </Link>
@@ -218,67 +144,48 @@ const AdminViewPlacements = () => {
 
         {/* Status Messages */}
         {error && (
-          <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-r-lg flex items-start">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9z" clipRule="evenodd" />
-            </svg>
-            <span>{error}</span>
+          <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded">
+            <p>{error}</p>
           </div>
         )}
-
         {deleteStatus.success && (
-          <div className="bg-green-50 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded-r-lg flex items-start">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-            </svg>
-            <span>{deleteStatus.success}</span>
+          <div className="bg-green-50 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded">
+            <p>{deleteStatus.success}</p>
           </div>
         )}
-
         {deleteStatus.error && (
-          <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-r-lg flex items-start">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9z" clipRule="evenodd" />
-            </svg>
-            <span>{deleteStatus.error}</span>
+          <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded">
+            <p>{deleteStatus.error}</p>
           </div>
         )}
 
-        {/* Filter Section */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+        {/* Filters */}
+        <div className="bg-white p-4 md:p-6 rounded-lg shadow-sm border border-gray-200 mb-6">
           <h3 className="font-medium text-gray-700 mb-4 flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clipRule="evenodd" />
+            <svg className="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
             </svg>
             Filter Records
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <input
-                  type="text"
-                  name="search"
-                  value={filters.search}
-                  onChange={handleFilterChange}
-                  placeholder="Name or company..."
-                  className="pl-10 w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
-                />
-              </div>
+              <input
+                type="text"
+                name="search"
+                value={filters.search}
+                onChange={handleFilterChange}
+                placeholder="Name or company"
+                className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
             </div>
-            
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Batch</label>
               <select
                 name="batch"
                 value={filters.batch}
                 onChange={handleFilterChange}
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition appearance-none"
+                className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="">All Batches</option>
                 {uniqueBatches.map(batch => (
@@ -286,14 +193,13 @@ const AdminViewPlacements = () => {
                 ))}
               </select>
             </div>
-            
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Branch</label>
               <select
                 name="branch"
                 value={filters.branch}
                 onChange={handleFilterChange}
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition appearance-none"
+                className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="">All Branches</option>
                 {uniqueBranches.map(branch => (
@@ -301,14 +207,13 @@ const AdminViewPlacements = () => {
                 ))}
               </select>
             </div>
-            
             <div className="flex items-end">
               <button
                 onClick={clearFilters}
-                className="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 py-2 px-4 rounded-lg transition flex items-center justify-center gap-2"
+                className="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 py-2 px-4 rounded flex items-center justify-center gap-2"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
                 Clear Filters
               </button>
@@ -316,281 +221,212 @@ const AdminViewPlacements = () => {
           </div>
         </div>
 
-        {/* Placements Table */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <div className="p-4 border-b border-gray-200 flex justify-between items-center">
-            <h2 className="font-semibold text-gray-700">
-              {sortedPlacements.length === 0 ? 
-                "No records found" : 
-                `Showing ${sortedPlacements.length} of ${placements.length} records`
-              }
-            </h2>
-            {sortedPlacements.length > 0 && (
-              <div className="text-sm text-gray-500">
-                Sorted by: <span className="font-medium">Newest First</span>
-              </div>
-            )}
-          </div>
-
-          {sortedPlacements.length === 0 ? (
-            <div className="p-8 text-center">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <h3 className="mt-4 text-lg font-medium text-gray-700">No placement records found</h3>
-              <p className="mt-1 text-gray-500">
-                {filters.branch !== "" || filters.batch !== "" || filters.search !== "" ? 
-                  "Try adjusting your filters" : 
-                  "Add a new placement record to get started"
-                }
-              </p>
-              {filters.branch !== "" || filters.batch !== "" || filters.search !== "" ? (
-                <button
-                  onClick={clearFilters}
-                  className="mt-4 text-indigo-600 hover:text-indigo-700 font-medium flex items-center justify-center mx-auto"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                  </svg>
-                  Clear all filters
-                </button>
-              ) : (
-                <Link 
-                  to="/admin/add-placement" 
-                  className="mt-4 inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-                  </svg>
-                  Add Placement
-                </Link>
-              )}
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Student
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Details
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Company
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Package
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {sortedPlacements.map((placement) => (
-                    <tr key={placement._id} className="hover:bg-gray-50 transition">
-                      {editingPlacement === placement._id ? (
-                        // Edit Form Row
-                        <td colSpan="5" className="px-6 py-4">
-                          <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                            <div className="flex justify-between items-center mb-4">
-                              <h3 className="font-medium text-gray-700">Edit Placement Record</h3>
-                              <button
-                                onClick={handleCancelEdit}
-                                className="text-gray-400 hover:text-gray-600"
-                              >
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                              </button>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Student Name</label>
-                                <input
-                                  type="text"
-                                  name="name"
-                                  value={formData.name}
-                                  onChange={handleFormChange}
-                                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Company</label>
-                                <input
-                                  type="text"
-                                  name="company"
-                                  value={formData.company}
-                                  onChange={handleFormChange}
-                                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Batch</label>
-                                <input
-                                  type="number"
-                                  name="batch"
-                                  value={formData.batch}
-                                  onChange={handleFormChange}
-                                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Branch</label>
-                                <select
-                                  name="branch"
-                                  value={formData.branch}
-                                  onChange={handleFormChange}
-                                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
-                                >
-                                  <option value="">Select Branch</option>
-                                  {uniqueBranches.map(branch => (
-                                    <option key={branch} value={branch}>{branch}</option>
-                                  ))}
-                                </select>
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Package (LPA)</label>
-                                <input
-                                  type="number"
-                                  name="package"
-                                  value={formData.package}
-                                  onChange={handleFormChange}
-                                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">CPI</label>
-                                <input
-                                  type="number"
-                                  step="0.01"
-                                  name="cpi"
-                                  value={formData.cpi}
-                                  onChange={handleFormChange}
-                                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
-                                <select
-                                  name="gender"
-                                  value={formData.gender}
-                                  onChange={handleFormChange}
-                                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
-                                >
-                                  <option value="">Select Gender</option>
-                                  <option value="Male">Male</option>
-                                  <option value="Female">Female</option>
-                                  
-                                </select>
-                              </div>
-                            </div>
-                            <div className="flex justify-end mt-6 space-x-3">
-                              <button
-                                onClick={handleCancelEdit}
-                                className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg transition flex items-center gap-2"
-                              >
-                                Cancel
-                              </button>
-                              <button
-                                onClick={() => handleSubmitEdit(placement._id)}
-                                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition flex items-center gap-2"
-                              >
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                </svg>
-                                Save Changes
-                              </button>
-                            </div>
-                          </div>
-                        </td>
-                      ) : (
-                        // Normal Row Display
-                        <>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center">
-                              <div className={`flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center text-white font-bold ${
-                                placement.gender === 'Female' ? 'bg-pink-500' : 
-                                placement.gender === 'Male' ? 'bg-blue-500' : 'bg-purple-500'
-                              }`}>
-                                {placement.name.charAt(0)}
-                              </div>
-                              <div className="ml-4">
-                                <div className="text-sm font-medium text-gray-900">{placement.name}</div>
-                                <div className="text-sm text-gray-500">CPI: {placement.cpi}</div>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">Batch {placement.batch}</div>
-                            <div className="text-sm text-gray-500">{placement.branch}</div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm font-medium text-gray-900">{placement.company}</div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className="px-2 py-1 text-sm font-semibold rounded-full bg-green-100 text-green-800">
-                              {placement.package} LPA
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            {confirmDelete === placement._id ? (
-                              <div className="flex items-center justify-end space-x-4">
-                                <span className="text-sm text-gray-500">Are you sure?</span>
-                                <button
-                                  onClick={() => setConfirmDelete(null)}
-                                  className="text-gray-600 hover:text-gray-900"
-                                >
-                                  Cancel
-                                </button>
-                                <button
-                                  onClick={() => handleDelete(placement._id)}
-                                  className="text-red-600 hover:text-red-900 font-medium flex items-center"
-                                >
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                                  </svg>
-                                  Delete
-                                </button>
-                              </div>
-                            ) : (
-                              <div className="flex items-center justify-end space-x-4">
-                                <button
-                                  onClick={() => handleEdit(placement)}
-                                  className="text-indigo-600 hover:text-indigo-900 flex items-center"
-                                >
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                                  </svg>
-                                  Edit
-                                </button>
-                                <button
-                                  onClick={() => setConfirmDelete(placement._id)}
-                                  className="text-red-600 hover:text-red-900 flex items-center"
-                                >
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                                  </svg>
-                                  Delete
-                                </button>
-                              </div>
-                            )}
-                          </td>
-                        </>
-                      )}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+        {/* Results Count */}
+        <div className="mb-4 flex justify-between items-center">
+          <p className="text-sm text-gray-600">
+            Showing {filteredPlacements.length} of {placements.length} records
+          </p>
         </div>
+
+        {/* Placement Records */}
+        {filteredPlacements.length === 0 ? (
+          <div className="bg-white p-8 rounded-lg shadow-sm border border-gray-200 text-center">
+            <svg className="w-16 h-16 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <h3 className="mt-4 text-lg font-medium text-gray-700">No records found</h3>
+            <p className="mt-1 text-gray-500">
+              {filters.branch || filters.batch || filters.search 
+                ? "Try adjusting your filters" 
+                : "Add a new placement to get started"}
+            </p>
+            <Link 
+              to="/admin/add-placement"
+              className="mt-4 inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition"
+            >
+              Add Placement
+            </Link>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {filteredPlacements.map(placement => (
+              <div key={placement._id} className="bg-white p-4 md:p-6 rounded-lg shadow-sm border border-gray-200">
+                {editingPlacement === placement._id ? (
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <h3 className="font-medium text-gray-700">Edit Placement</h3>
+                      <button 
+                        onClick={() => setEditingPlacement(null)}
+                        className="text-gray-400 hover:text-gray-600"
+                      >
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Student Name</label>
+                        <input
+                          type="text"
+                          name="name"
+                          value={formData.name}
+                          onChange={(e) => setFormData({...formData, name: e.target.value})}
+                          className="w-full p-2 border border-gray-300 rounded"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Company</label>
+                        <input
+                          type="text"
+                          name="company"
+                          value={formData.company}
+                          onChange={(e) => setFormData({...formData, company: e.target.value})}
+                          className="w-full p-2 border border-gray-300 rounded"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Batch</label>
+                        <input
+                          type="number"
+                          name="batch"
+                          value={formData.batch}
+                          onChange={(e) => setFormData({...formData, batch: e.target.value})}
+                          className="w-full p-2 border border-gray-300 rounded"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Branch</label>
+                        <select
+                          name="branch"
+                          value={formData.branch}
+                          onChange={(e) => setFormData({...formData, branch: e.target.value})}
+                          className="w-full p-2 border border-gray-300 rounded"
+                        >
+                          {uniqueBranches.map(branch => (
+                            <option key={branch} value={branch}>{branch}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Package (LPA)</label>
+                        <input
+                          type="number"
+                          name="package"
+                          value={formData.package}
+                          onChange={(e) => setFormData({...formData, package: e.target.value})}
+                          className="w-full p-2 border border-gray-300 rounded"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">CPI</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          name="cpi"
+                          value={formData.cpi}
+                          onChange={(e) => setFormData({...formData, cpi: e.target.value})}
+                          className="w-full p-2 border border-gray-300 rounded"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex justify-end space-x-3">
+                      <button
+                        onClick={() => setEditingPlacement(null)}
+                        className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={() => handleSubmitEdit(placement._id)}
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded"
+                      >
+                        Save Changes
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="flex items-start gap-4">
+                      <div className={`flex-shrink-0 h-12 w-12 rounded-full flex items-center justify-center text-white font-bold ${
+                        placement.gender === 'Female' ? 'bg-pink-500' : 'bg-blue-500'
+                      }`}>
+                        {placement.name.charAt(0)}
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h3 className="font-medium text-gray-800">{placement.name}</h3>
+                            <p className="text-sm text-gray-600">{placement.company}</p>
+                          </div>
+                          <span className="px-2 py-1 text-sm font-semibold rounded-full bg-green-100 text-green-800">
+                            {placement.package} LPA
+                          </span>
+                        </div>
+                        <div className="mt-2 grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
+                          <div>
+                            <span className="font-medium text-gray-500">Batch:</span>
+                            <p>{placement.batch}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-500">Branch:</span>
+                            <p>{placement.branch}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-500">CPI:</span>
+                            <p>{placement.cpi}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex justify-end space-x-3">
+                      <button
+                        onClick={() => handleEdit(placement)}
+                        className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm flex items-center gap-1"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                        </svg>
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => setConfirmDelete(placement._id)}
+                        className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-sm flex items-center gap-1"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        Delete
+                      </button>
+                    </div>
+                    {confirmDelete === placement._id && (
+                      <div className="mt-3 p-3 bg-red-50 rounded-lg border border-red-200">
+                        <p className="text-sm text-red-700 mb-2">Are you sure you want to delete this record?</p>
+                        <div className="flex justify-end space-x-3">
+                          <button
+                            onClick={() => setConfirmDelete(null)}
+                            className="px-3 py-1 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded text-sm"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={() => handleDelete(placement._id)}
+                            className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-sm"
+                          >
+                            Confirm Delete
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
-
 };
 
 export default AdminViewPlacements;
