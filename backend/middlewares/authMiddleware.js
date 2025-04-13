@@ -4,7 +4,7 @@ require("dotenv").config();
 
 // const JWT_SECRET = process.env.JWT_SECRET;
 
-// Authentication Middleware ✅
+// Authentication Middleware 
 const authMiddleware = async (req, res, next) => {
   console.log(" Authorization Header:", req.headers.authorization); // Debugging
 
@@ -33,7 +33,7 @@ const authMiddleware = async (req, res, next) => {
   }
 };
 
-// Admin Authorization Middleware ✅
+// Admin Authorization Middleware 
 const adminMiddleware = (req, res, next) => {
   if (!req.user || req.user.role !== "admin") {
     return res.status(403).json({ message: "Access denied. Admins only" });
