@@ -89,7 +89,7 @@ router.post("/send-otp", async (req, res) => {
         return res.status(400).json({ message: "Email already in use" });
       } else {
         console.log(" OTP already sent but not verified for:", email);
-        return res.status(400).json({ message: "OTP already sent. Please verify your email." });
+        return res.status(400).json({ message: "OTP already sent. Please verify your email. (Check once in spam)" });
       }
     }
 
