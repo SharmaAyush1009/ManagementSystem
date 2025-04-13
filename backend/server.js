@@ -1,3 +1,4 @@
+console.log(" SERVER STARTED!!!");
 // require("dotenv").config();
 import "dotenv/config"; //  Use import instead of require
 import express from "express";
