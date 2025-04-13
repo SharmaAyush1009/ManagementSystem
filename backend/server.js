@@ -19,7 +19,7 @@ app.use(cors({
   origin: ['http://localhost:3000', 'https://management-system-indol.vercel.app'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE'], // Add all methods you use
-  allowedHeaders: ['Content-Type', 'Authorization'] // Add custom headers
+  allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control'] // Add custom headers
 }));
 
 // dotenv.config();
