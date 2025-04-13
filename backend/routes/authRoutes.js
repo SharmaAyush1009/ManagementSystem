@@ -6,6 +6,7 @@ const sendVerificationEmail = require("../utils/sendEmail");
 const crypto = require("crypto");
 const { error } = require("console");
 const generateToken = require("../utils/generateToken");
+const mongoose = require('mongoose'); // Import
 
 require("dotenv").config();
 
@@ -201,15 +202,15 @@ router.post("/verify-otp", async (req, res) => {
 
 router.post("/login", async (req, res) => {
 
-  console.log("Received login request body:", req.body); // Log the payload
+  // console.log("Received login request body:", req.body); // Log the payload
   
   const { email, password } = req.body;
   
-  console.log("Searching for email:", email); // Log the email being queried
+  // console.log("Searching for email:", email); // Log the email being queried
   
   try {
       const user = await User.findOne({ email });
-      console.log("Found user:", user); // Log the user document
+      // console.log("Found user:", user); // Log the user document
       if (!user) return res.status(400).json({ message: "User not found" });
 
       if (!user.isVerified) return res.status(400).json({ message: "User not verified" });
