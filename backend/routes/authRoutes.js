@@ -197,11 +197,19 @@ router.post("/verify-otp", async (req, res) => {
 //     res.status(500).json({ msg: "Internal Server Error" });
 //   }
 // });
-router.post("/login", async (req, res) => {
-  const { email, password } = req.body;
 
+
+router.post("/login", async (req, res) => {
+
+  console.log("Received login request body:", req.body); // Log the payload
+  
+  const { email, password } = req.body;
+  
+  console.log("Searching for email:", email); // Log the email being queried
+  
   try {
       const user = await User.findOne({ email });
+      console.log("Found user:", user); // Log the user document
       if (!user) return res.status(400).json({ message: "User not found" });
 
       if (!user.isVerified) return res.status(400).json({ message: "User not verified" });
@@ -216,4 +224,23 @@ router.post("/login", async (req, res) => {
       res.status(500).json({ message: "Server error" });
   }
 });
+// router.post("/login", async (req, res) => {
+//   const { email, password } = req.body;
+
+//   try {
+//       const user = await User.findOne({ email });
+//       if (!user) return res.status(400).json({ message: "User not found" });
+
+//       if (!user.isVerified) return res.status(400).json({ message: "User not verified" });
+
+//       const isMatch = await bcrypt.compare(password, user.password);
+//       if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
+
+//       const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
+
+//       res.json({ token, role: user.role, username: user.username });
+//   } catch (error) {
+//       res.status(500).json({ message: "Server error" });
+//   }
+// });
 module.exports = router;
