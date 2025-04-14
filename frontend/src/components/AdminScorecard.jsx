@@ -73,11 +73,12 @@ const AdminScorecard = () => {
     }
     
     // Apply batch filter (assuming batch is part of rollNo or profile)
-    if (batchFilter) {
-      result = result.filter(student => 
-        student.profile.rollNo.startsWith(batchFilter(2))   // Match first 2 digits
-      );
-    }
+     if (batchFilter) {
+        const batchSuffix = batchFilter.substring(2); // Get last 2 digits of the year
+        result = result.filter(student => 
+          student.profile.rollNo.startsWith(batchSuffix)
+        );
+      }
     
     // Apply sorting
     if (sortConfig.key) {
