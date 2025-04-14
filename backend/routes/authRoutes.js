@@ -49,7 +49,7 @@ const JWT_SECRET = process.env.JWT_SECRET;
 
 //     await user.save();
 //     try {
-//       await sendVerificationEmail(email, verificationCode);  // ✅ Send email before response
+//       await sendVerificationEmail(email, verificationCode);  //  Send email before response
 //     } catch (emailError) {
 //       console.error("Email Sending Error:", emailError);
 //       return res.status(500).json({ msg: "User registered but email not sent. Try again later." });
@@ -107,8 +107,8 @@ router.post("/send-otp", async (req, res) => {
       username,
       email,
       password: hashedPassword,
-      verificationCode, //  Store OTP
-      verificationExpires, // Store expiration time
+      verificationCode, 
+      verificationExpires,
       isVerified: false
     });
 
@@ -139,7 +139,7 @@ router.post("/verify-otp", async (req, res) => {
 
     if (user.isVerified) return res.status(400).json({ msg: "Email already verified" });
 
-    //  Check if OTP is correct and not expired
+    // if OTP is correct and not expired
     if (user.verificationCode !== otp || Date.now() > new Date(user.verificationExpires).getTime()) {
       return res.status(400).json({ msg: "Invalid or expired OTP" });
     }
@@ -163,42 +163,6 @@ router.post("/verify-otp", async (req, res) => {
     res.status(500).json({ msg: "Internal Server Error" });
   }
 });
-
-// Login User
-// router.post("/login", async (req, res) => {
-//   try {
-//     const { email, password } = req.body;
-
-//     const user = await User.findOne({ email });
-//     if (!user) return res.status(400).json({ msg: "Invalid email or password" });
-
-//     //  Check if Email is Verified
-//     if (!user.isVerified) {
-//       console.log("Email not verified");
-//       return res.status(403).json({ msg: "Email not verified. Check your inbox." });
-//     }
-//     // Debug: Log password values before comparison
-//     console.log("🔍 Entered Password:", password);
-//     console.log("🔍 Hashed Password from DB:", user.password);
-//     const isMatch = await bcrypt.compare(password, user.password);
-//     console.log("Entered Password:", password);
-//     console.log("Stored Hashed Password:", user.password);
-//     console.log("Password Match Result:", isMatch);
-
-//     if (!isMatch) return res.status(400).json({ msg: "Invalid email or password" });
-
-//     const token = generateToken(user._id);
-
-//     res.status(200).json({ 
-//       token, 
-//       user: { id: user._id, name: user.name, email: user.email, role: user.role } 
-//     });
-//   } catch (err) {
-//     console.error("Login Error:", err);
-//     res.status(500).json({ msg: "Internal Server Error" });
-//   }
-// });
-
 
 router.post("/login", async (req, res) => {
 
@@ -225,23 +189,5 @@ router.post("/login", async (req, res) => {
       res.status(500).json({ message: "Server error" });
   }
 });
-// router.post("/login", async (req, res) => {
-//   const { email, password } = req.body;
 
-//   try {
-//       const user = await User.findOne({ email });
-//       if (!user) return res.status(400).json({ message: "User not found" });
-
-//       if (!user.isVerified) return res.status(400).json({ message: "User not verified" });
-
-//       const isMatch = await bcrypt.compare(password, user.password);
-//       if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
-
-//       const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
-
-//       res.json({ token, role: user.role, username: user.username });
-//   } catch (error) {
-//       res.status(500).json({ message: "Server error" });
-//   }
-// });
 module.exports = router;
