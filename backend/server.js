@@ -15,7 +15,7 @@ const PORT = process.env.PORT || 5000;
 app.use(cors({
   origin: ['http://localhost:3000', 'https://management-system-indol.vercel.app'],
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Add all methods you use
+  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Add all methods 
   allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control'] // Add custom headers
 }));
 
@@ -44,7 +44,7 @@ app.get("/api/test", async (req, res) => {
   }
 });
 
-//  Run this every 10 minutes to clear unverified users
+//  in 10 minutes to clear unverified users
 cron.schedule("*/10 * * * *", async () => {
   const now = new Date();
   const deleted = await User.deleteMany({ isVerified: false, verificationExpires: { $lt: now } });
