@@ -57,11 +57,11 @@ function App() {
             >
               <Route index element={<AdminDashboard />} />
               <Route path="scorecard" element={<AdminScorecard />} />
-{/*               <Route path="placement" element={<AdminViewPlacements />} /> */}
+              <Route path="placement" element={<AdminViewPlacements />} />
               <Route path="requests" element={<RequestsPage />} />
               <Route path="requests/:id" element={<RequestDetails />} />
               <Route path="add-placement" element={<AddPlacement />} />
-              <Route path="view-placements" element={<AdminViewPlacements />} />
+{/*               <Route path="view-placements" element={<AdminViewPlacements />} /> */}
             </Route>
             
             {/* Student Routes */}
