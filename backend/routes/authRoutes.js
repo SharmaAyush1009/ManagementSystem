@@ -151,7 +151,7 @@ router.post("/verify-otp", async (req, res) => {
     console.log(" User verified successfully:", email);
 
      //  Generate JWT after successful verification
-     const token = generateToken(user._id);
+     const token = generateToken(user._id, user.role);
 
   res.json({ 
       msg: "Email verified successfully!", 
