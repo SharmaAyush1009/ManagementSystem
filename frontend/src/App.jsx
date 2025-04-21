@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import Navbar from "./components/Navbar";
 import Signup from "./components/Signup";
 import Login from "./components/Login";
-import Dashboard from "./components/Dashboard";
+// import Dashboard from "./components/Dashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider, useAuth } from "./components/AuthContext";
 import StudentDashboard from "./components/StudentDashboard";
@@ -10,7 +10,7 @@ import Scorecard from "./components/ScoreCard";
 import StudentProfileForm from "./components/StudentProfileForm";
 import PlacedStudents from "./components/PlacedStudents";
 import AdminDashboard from "./components/AdminDashboard";
-import ScoreCardPage from "./components/ScoreCardPage";
+// import ScoreCardPage from "./components/ScoreCardPage";
 import AdminLayout from "./components/AdminLayout";
 import RequestsPage from "./components/RequestsPage";
 import RequestDetails from "./components/RequestDetails";
@@ -18,8 +18,8 @@ import AddPlacement from "./components/AdminPlacement";
 import AdminViewPlacements from "./components/AdminViewPlacements";
 import AdminScorecard from "./components/AdminScorecard";
 
-// Create a RoleRoute component for role-based routing
-const RoleRoute = ({ role, element, ...props }) => {
+// RoleRoute component for role-based routing
+const RoleRoute = ({ role, element}) => {
   const { role: userRole } = useAuth();
   return userRole === role ? element : <Navigate to="/login" replace />;
 };
@@ -57,7 +57,7 @@ function App() {
             >
               <Route index element={<AdminDashboard />} />
               <Route path="scorecard" element={<AdminScorecard />} />
-              <Route path="placement" element={<AdminViewPlacements />} />
+{/*               <Route path="placement" element={<AdminViewPlacements />} /> */}
               <Route path="requests" element={<RequestsPage />} />
               <Route path="requests/:id" element={<RequestDetails />} />
               <Route path="add-placement" element={<AddPlacement />} />
