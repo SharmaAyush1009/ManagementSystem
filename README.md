@@ -24,7 +24,7 @@ A full-stack management system built using MERN.
 git clone https://github.com/SharmaAyush1009/ManagementSystem.git
 cd ManagementSystem
 
-# Install dependencies
+# Install dependencies(in backend and frontend)
 npm install
 
 # Create a .env file and add your environment variables
