@@ -18,7 +18,7 @@ const sendVerificationEmail = async (userEmail, verificationCode) => {
       from: process.env.SMTP_USER,
       to: userEmail,
       subject: "Verify Your Email",
-      text: `Thanks for registering!, just one step away from access. Here is your verification code: ${verificationCode}. It expires in 10 minutes.`,
+      text: `Thanks for registering! just one step away from access. Here is your verification code: ${verificationCode}. It expires in 10 minutes.`,
     };
 
     const info = await transporter.sendMail(mailOptions);
