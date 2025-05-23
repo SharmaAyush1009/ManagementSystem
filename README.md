@@ -17,7 +17,7 @@ A full-stack Alumni Management System designed to manage and display alumni data
   - Branch-wise sorting
   - Batch-wise filtering
 
-### 🧑🎓 Alumni Information
+### 🎓 Alumni Information
 - Verified alumni profiles with placement packages
 - Filters:
   - Package range
@@ -72,6 +72,7 @@ cd ManagementSystem
 #Backend Setup
 cd backend
 npm install
+
 # Create .env file with:
 MONGODB_URI=your_mongodb_uri
 JWT_SECRET=your_jwt_secret
