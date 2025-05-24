@@ -48,6 +48,7 @@ A full-stack Alumni Management System designed to manage and display alumni data
 ### Backend
 - **Runtime**: Node.js
 - **Framework**: Express.js
+- **API**: RESTful Architecture
 - **Security**: JWT Authentication
 
 ### Database
@@ -59,7 +60,7 @@ A full-stack Alumni Management System designed to manage and display alumni data
 ### Prerequisites
 - Node.js (v16+)
 - MongoDB Atlas URI
-- npm/yarn
+- npm
 
 
 ## Setup Instructions
