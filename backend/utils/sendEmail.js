@@ -2,23 +2,24 @@ const nodemailer = require("nodemailer");
 
 const sendVerificationEmail = async (userEmail, verificationCode) => {
   try {
-    if (!userEmail || !verificationCode) throw new Error("Email and verification code are required");
-    // console.log(process.env.SMTP_USER, process.env.SMTP_PASS);
+    if (!userEmail || !verificationCode) {
+      throw new Error("Email and verification code are required");
+    }
+
+    // Use SendGrid via Nodemailer
     const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: process.env.SMTP_PORT,
-      secure: false,
+      service: "SendGrid",
       auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
+        user: "apikey", 
+        pass: process.env.SENDGRID_API_KEY,
       },
     });
 
     const mailOptions = {
-      from: process.env.SMTP_USER,
+      from: process.env.HOST_EMAIL, 
       to: userEmail,
       subject: "Verify Your Email",
-      text: `Thanks for registering! just one step away from access. Here is your verification code: ${verificationCode}. It expires in 10 minutes.`,
+      text: `Thanks for registering! Here is your verification code: ${verificationCode}. It expires in 10 minutes.`,
     };
 
     const info = await transporter.sendMail(mailOptions);
