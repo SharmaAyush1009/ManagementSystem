@@ -312,3 +312,9 @@ totalDocsExamined: 360
 totalKeysExamined: 360
 nReturned: 360
 executionTimeMillis: 3
+
+
+andddddddddddddddddddddddddddddd
+optimisation 2------------------------------------------------->>
+.find(query).select("name branch batch company package")
+This reduces BSON size → faster response.
