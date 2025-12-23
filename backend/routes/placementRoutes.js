@@ -35,7 +35,7 @@ router.post("/add", authMiddleware, adminMiddleware, async (req, res) => {
 // Get All Placement Data (For Students to View)
 router.get("/", async (req, res) => {
   try {
-    const placements = await Placement.find({}).select("name branch batch company package");;
+    const placements = await Placement.find({}).select("name branch batch company package");
     res.json(placements);
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
